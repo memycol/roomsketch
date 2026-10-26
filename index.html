@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>RoomSketch Lite</title>
+<style>
+:root{--bg:#faf6f0;--pn:#fffdf9;--bd:#e6dfd3;--tx:#38353a;--mu:#8a8490;--ac:#7fa086;--ac2:#b9a9d9;--sh:0 4px 16px rgba(80,70,50,.09);--r:14px;--floor:#fbf8f2;--grid:#e4ddcf;--wall:#8a8294;--line:#6b6470;--warn:#e0735f;--cvbg:#efe9df;--win:#d8ebf5}
+[data-theme=dark]{--bg:#1f2230;--pn:#282c3d;--bd:#3a3f55;--tx:#e6e4ee;--mu:#9a98ab;--ac:#8fb59a;--ac2:#b3a3e0;--sh:0 4px 16px rgba(0,0,0,.35);--floor:#2c3042;--grid:#3b4058;--wall:#7e86a8;--line:#c9c6d8;--warn:#ff8f7a;--cvbg:#191b27;--win:#41567a}
+*{box-sizing:border-box}
+body{margin:0;height:100vh;font:14px/1.4 ui-rounded,"SF Pro Rounded",Nunito,"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--tx);transition:background .3s,color .3s;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100vh}
+header{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--pn);border-bottom:1px solid var(--bd);flex-wrap:wrap;transition:background .3s}
+.logo{font-weight:800;letter-spacing:-.3px;display:flex;align-items:center;gap:7px}
+.logo i{width:26px;height:26px;border-radius:9px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:inline-block}
+.sp{flex:1}
+.btn{border:1px solid var(--bd);background:var(--pn);color:var(--tx);border-radius:10px;padding:6px 10px;min-height:34px;cursor:pointer;display:inline-flex;gap:6px;align-items:center;font:inherit;transition:.15s}
+.btn:hover{transform:translateY(-1px);box-shadow:var(--sh)}
+.btn.pri{background:var(--ac);color:#fff;border-color:transparent}
+.btn.on{background:var(--ac2);color:#2a2540;border-color:transparent}
+.btn.dng{color:var(--warn)}
+.btn:disabled{opacity:.4;pointer-events:none}
+:focus-visible{outline:2px solid var(--ac2);outline-offset:2px}
+svg.ic{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+input,select{font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:9px;padding:6px 8px;min-height:34px;min-width:0}
+#pname{font-weight:700;border-color:transparent;background:transparent;width:190px}
+#pname:hover,#pname:focus{border-color:var(--bd);background:var(--bg)}
+#status{font-size:12px;color:var(--mu);padding:3px 9px;border-radius:99px;background:var(--bg)}
+#main{flex:1;display:flex;min-height:0;position:relative}
+aside{width:260px;background:var(--pn);display:flex;flex-direction:column;min-height:0;transition:background .3s}
+#lib{border-right:1px solid var(--bd)}#insp{border-left:1px solid var(--bd);width:285px}
+.pad{padding:10px}
+#tabs{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.tab{border:0;background:var(--bg);color:var(--tx);border-radius:99px;padding:3px 9px;font-size:12px;cursor:pointer}.tab.on{background:var(--ac);color:#fff}
+#libList,#insp .body{overflow:auto;flex:1;padding:6px 10px 14px}
+.card{display:flex;gap:10px;align-items:center;width:100%;text-align:left;margin-bottom:6px;padding:6px 8px;border:1px solid var(--bd);border-radius:12px;background:var(--bg);color:var(--tx);cursor:pointer;transition:.15s;font:inherit}
+.card:hover{transform:translateX(2px);border-color:var(--ac);box-shadow:var(--sh)}
+.card canvas{background:var(--floor);border-radius:8px;flex:none}.card b{display:block;font-weight:600}.card small{color:var(--mu)}
+#work{flex:1;display:flex;flex-direction:column;min-width:0}
+#tb{display:flex;gap:6px;align-items:center;padding:7px 10px;flex-wrap:wrap;background:var(--pn);border-bottom:1px solid var(--bd)}
+#wrap{flex:1;position:relative;min-height:0;background:var(--cvbg)}
+#cv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+#empty{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);background:var(--pn);border:1px dashed var(--bd);border-radius:var(--r);padding:8px 14px;color:var(--mu);pointer-events:none;box-shadow:var(--sh)}
+#ctx{position:absolute;left:50%;top:12px;transform:translateX(-50%);display:flex;gap:4px;background:var(--pn);border:1px solid var(--bd);border-radius:var(--r);padding:4px;box-shadow:var(--sh)}
+.f{display:flex;align-items:center;gap:6px;margin:6px 0}.f span{width:74px;color:var(--mu);font-size:12px}.f input,.f select{flex:1;width:100%}.f i{font-style:normal;color:var(--mu);font-size:12px;width:20px}
+.f input[type=checkbox]{flex:none;width:18px;min-height:18px}.f input[type=color]{padding:1px;height:34px}
+h3{margin:12px 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--mu)}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+#val{border-top:1px solid var(--bd);padding:8px 10px;max-height:38%;overflow:auto}
+#val summary{cursor:pointer;font-weight:700}.ok{color:var(--ac)}
+.w{display:block;width:100%;text-align:left;margin:4px 0;padding:6px 8px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font:inherit;font-size:13px;cursor:pointer}
+.w:hover{border-color:var(--warn)}
+.stat{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0;color:var(--mu);font-size:12px}.stat b{color:var(--tx)}
+.ov{position:fixed;inset:0;background:rgba(30,25,40,.4);display:flex;align-items:center;justify-content:center;z-index:50;padding:14px}
+.md{background:var(--pn);border-radius:20px;padding:20px;max-width:480px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.3);max-height:90vh;overflow:auto}
+.md h2{margin:0 0 10px}.mf{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+.pl{display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid var(--bd)}.pl div{flex:1;min-width:0}.pl small{color:var(--mu)}
+#toasts{position:fixed;bottom:18px;right:18px;display:flex;flex-direction:column;gap:6px;z-index:99}
+.toast{background:var(--tx);color:var(--bg);padding:9px 14px;border-radius:12px;box-shadow:var(--sh);animation:up .25s}
+@keyframes up{from{transform:translateY(8px);opacity:0}}
+kbd{background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:0 5px;font-size:12px}
+.mob{display:none}
+@media(max-width:1000px){aside{position:absolute;top:0;bottom:0;z-index:8;display:none;box-shadow:var(--sh)}#lib{left:0}#insp{right:0}aside.show{display:flex}.mob{display:inline-flex}#pname{width:130px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+#ptitle{display:none}
+@media print{header,aside,#tb,#ctx,#empty,#toasts{display:none!important}#ptitle{display:block;padding:10px;font-size:18px}body,#app{height:auto;overflow:visible}#wrap{height:90vh}}
+</style></head><body>
+<div id="app">
+<header>
+ <div class="logo"><i></i>RoomSketch Lite</div>
+ <input id="pname" aria-label="Project name" title="Click to rename project">
+ <span id="status">Saved</span><span class="sp"></span>
+ <button class="btn" id="bProj" title="Create, open, duplicate, rename or delete projects"></button>
+ <button class="btn" id="bUndo" title="Undo (Ctrl+Z)" aria-label="Undo"></button>
+ <button class="btn" id="bRedo" title="Redo (Ctrl+Shift+Z)" aria-label="Redo"></button>
+ <button class="btn" id="bShare" title="Import / export / print"></button>
+ <button class="btn" id="bHelp" title="Controls and rules" aria-label="Help">?</button>
+ <button class="btn" id="bTheme" title="Toggle light / dark" aria-label="Toggle theme"></button>
+ <button class="btn pri" id="bSave" title="Save now (Ctrl+S)"></button>
+</header>
+<div id="main">
+ <aside id="lib"><div class="pad"><input id="q" type="search" placeholder="Search furniture…" aria-label="Search furniture" style="width:100%"><div id="tabs"></div></div><div id="libList"></div></aside>
+ <section id="work">
+  <div id="tb">
+   <button class="btn mob" id="mLib">Library</button>
+   <button class="btn" id="tGrid" title="Show grid">Grid</button>
+   <button class="btn" id="tSnap" title="Snap movement to grid and walls">Snap</button>
+   <select id="gSize" aria-label="Grid spacing" title="Grid spacing"></select>
+   <button class="btn" id="tMeas" title="Show measurements">Measure</button>
+   <button class="btn" id="tWarn" title="Show collision and clearance warnings">Warnings</button>
+   <span class="sp"></span>
+   <button class="btn" id="zOut" aria-label="Zoom out">−</button><span id="zPct" style="min-width:44px;text-align:center"></span><button class="btn" id="zIn" aria-label="Zoom in">+</button>
+   <button class="btn" id="zFit" title="Fit room to screen"></button>
+   <button class="btn mob" id="mInsp">Inspector</button>
+  </div>
+  <div id="ptitle"></div>
+  <div id="wrap"><canvas id="cv" tabindex="0" aria-label="Room editor canvas"></canvas><div id="empty">Click any item in the library to place it in your room</div><div id="ctx" hidden></div></div>
+ </section>
+ <aside id="insp"><div class="body"></div><details id="val" open><summary>Layout check</summary><div id="vbody"></div></details></aside>
+</div></div><div id="toasts"></div>
+<script>
+'use strict';
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,8)+Date.now().toString(36);
+const ICO={undo:'M9 14L4 9l5-5M4 9h10a6 6 0 010 12h-3',redo:'M15 14l5-5-5-5M20 9H10a6 6 0 000 12h3',save:'M5 3h11l3 3v15H5zM8 3v5h7V3M8 21v-7h8v7',sun:'M12 7a5 5 0 100 10 5 5 0 000-10zM12 1v3M12 20v3M1 12h3M20 12h3M4 4l2 2M18 18l2 2M4 20l2-2M18 6l2-2',moon:'M20 14A8 8 0 1110 4a7 7 0 0010 10z',fold:'M3 6h6l2 2h10v11H3z',dl:'M12 3v12M7 10l5 5 5-5M4 20h16',fit:'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5',rot:'M20 11a8 8 0 10-2 6M20 4v7h-7',copy:'M8 8h12v12H8zM4 16V4h12',trash:'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',lock:'M6 11h12v10H6zM8 11V7a4 4 0 018 0v4',eye:'M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7zM12 9a3 3 0 100 6 3 3 0 000-6'};
+const ic=(k,l)=>`<svg class="ic" viewBox="0 0 24 24"><path d="${ICO[k]}"/></svg>${l?'<span>'+l+'</span>':''}`;
+const U={mm:[1],cm:[10],m:[1000],in:[25.4],ft:[304.8]};
+const fmt=(v,u)=>+(v/U[u][0]).toFixed(u==='mm'?0:2);
+const sysI=u=>u==='in'||u==='ft';
+const GR={m:[[50,'5 cm'],[100,'10 cm'],[250,'25 cm'],[500,'50 cm'],[1000,'1 m']],i:[[76.2,'3 in'],[152.4,'6 in'],[304.8,'1 ft'],[609.6,'2 ft'],[914.4,'3 ft']]};
+// ---------- catalogue ----------
+const CAT=`sofa1|Single Sofa|Living|900|900|#b9c9e4|sofa
+sofa2|Two-Seat Sofa|Living|1600|900|#b9c9e4|sofa
+sofa3|Three-Seat Sofa|Living|2200|900|#b9c9e4|sofa
+arm|Armchair|Living|850|850|#d8c8ea|sofa
+coff|Coffee Table|Living|1100|600|#e8cfae|table
+side|Side Table|Living|500|500|#e8cfae|rtable
+tvs|TV Stand|Living|1500|400|#c9b49a|cab
+tv|Television|Living|1200|120|#4a4e5a|tv
+shelf|Bookshelf|Living|900|300|#c9b49a|cab
+lamp|Floor Lamp|Living|350|350|#f2dc9b|lamp
+rug|Rug|Living|2000|1400|#e6c7cf|rug
+plant|Plant|Living|500|500|#a9cfa4|plant
+bed1|Single Bed|Bedroom|900|1900|#c9d6c1|bed
+bed2|Double Bed|Bedroom|1350|1900|#e3c6d4|bed
+bedq|Queen Bed|Bedroom|1530|2030|#c7c0e4|bed
+bedk|King Bed|Bedroom|1930|2030|#f1d3bd|bed
+night|Bedside Table|Bedroom|450|400|#d9c3a5|cab
+ward|Wardrobe|Bedroom|1200|600|#d9c3a5|cab
+chest|Chest of Drawers|Bedroom|900|480|#d9c3a5|cab
+desk|Desk|Bedroom|1200|600|#e0c9a6|desk
+chair|Chair|Bedroom|450|450|#f1d3bd|chair
+fridge|Refrigerator|Kitchen|700|700|#d5dde6|fridge
+cnt|Kitchen Counter|Kitchen|1000|600|#e6d8c0|cab
+sinkc|Sink Counter|Kitchen|1200|600|#e6d8c0|sink
+stove|Stove|Kitchen|600|600|#d5d5dc|stove
+dish|Dishwasher|Kitchen|600|600|#d5dde6|cab
+dtab|Dining Table|Kitchen|1600|900|#e8cfae|table
+dchr|Dining Chair|Kitchen|450|450|#f1d3bd|chair
+isl|Kitchen Island|Kitchen|1800|900|#e6d8c0|table
+toil|Toilet|Bathroom|400|700|#f1f1f5|toilet
+tub|Bathtub|Bathroom|1700|750|#e8eef5|tub
+show|Shower Enclosure|Bathroom|900|900|#d8e8f2|shower
+vani|Bathroom Vanity|Bathroom|800|500|#e6dcd0|sink
+odesk|Office Desk|Office|1500|750|#e0c9a6|desk
+ochair|Office Chair|Office|600|600|#b9c9e4|chair
+cdesk|Computer Desk|Office|1400|700|#d9c3a5|desk
+file|Filing Cabinet|Office|450|600|#c8ccd4|cab
+bshelf|Office Bookshelf|Office|900|300|#c9b49a|cab
+cabi|Storage Cabinet|Storage|900|450|#d9c3a5|cab
+tall|Tall Cabinet|Storage|600|450|#d9c3a5|cab
+splant|Small Plant|Decor|300|300|#a9cfa4|plant
+lplant|Large Plant|Decor|700|700|#93c18f|plant
+art|Wall Art|Decor|900|100|#f2c6b4|art
+mir|Floor Mirror|Decor|500|100|#dcebf2|mirror
+bask|Laundry Basket|Decor|450|350|#e8d6b8|basket
+door|Standard Door|Doors|900|0|#fff|door
+ddoor|Double Door|Doors|1500|0|#fff|door
+sdoor|Sliding Door|Doors|1800|0|#fff|door
+win|Window|Doors|1200|0|#fff|win`.split('\n').map(l=>{const a=l.split('|');return{k:a[0],n:a[1],c:a[2],w:+a[3],h:+a[4],col:a[5],s:a[6]}});
+const DEF=Object.fromEntries(CAT.map(d=>[d.k,d])),isOp=k=>DEF[k]&&(DEF[k].c==='Doors');
+const CL={All:'All',Living:'Living room',Bedroom:'Bedroom',Kitchen:'Kitchen',Bathroom:'Bathroom',Office:'Office',Storage:'Storage',Doors:'Doors & windows',Decor:'Decor'};
+// ---------- state ----------
+let DB={projects:{},cur:null},P=null,sel=null,cam={z:.1,x:0,y:0},S={cat:'All',q:''},V={},drag=null,H=[],hi=0,clip=null,need=true,saveT,CW=800,CH=600,persist=true;
+const KEY='roomsketch.lite.v1',cv=$('#cv'),cx=cv.getContext('2d');
+const get=id=>P.items.find(i=>i.id===id)||P.ops.find(i=>i.id===id);
+const rad=d=>d*Math.PI/180;
+// ---------- geometry ----------
+function corners(it){const c=Math.cos(rad(it.rot)),s=Math.sin(rad(it.rot)),a=it.w/2,b=it.h/2;return[[-a,-b],[a,-b],[a,b],[-a,b]].map(([x,y])=>[it.x+x*c-y*s,it.y+x*s+y*c])}
+function sat(A,B,tol=1){for(const poly of[A,B])for(let i=0;i<4;i++){const p=poly[i],q=poly[(i+1)%4],nx=q[1]-p[1],ny=p[0]-q[0],L=Math.hypot(nx,ny)||1;let a0=1e18,a1=-1e18,b0=1e18,b1=-1e18;for(const v of A){const d=(v[0]*nx+v[1]*ny)/L;a0=Math.min(a0,d);a1=Math.max(a1,d)}for(const v of B){const d=(v[0]*nx+v[1]*ny)/L;b0=Math.min(b0,d);b1=Math.max(b1,d)}if(Math.min(a1,b1)-Math.max(a0,b0)<=tol)return false}return true}
+function oframe(o){const R=P.room,t=R.t;return o.wall==='N'?{cx:o.pos,cy:-t/2,a:0}:o.wall==='S'?{cx:o.pos,cy:R.l+t/2,a:180}:o.wall==='W'?{cx:-t/2,cy:o.pos,a:-90}:{cx:R.w+t/2,cy:o.pos,a:90}}
+function loc(f,x,y){const c=Math.cos(rad(f.a)),s=Math.sin(rad(f.a));return[f.cx+x*c-y*s,f.cy+x*s+y*c]}
+function zone(o){const f=oframe(o),t=P.room.t,d=o.type==='ddoor'||o.type==='door'?Math.max(P.room.clr,o.w):P.room.clr,h=o.w/2;return[loc(f,-h,t/2),loc(f,h,t/2),loc(f,h,t/2+d),loc(f,-h,t/2+d)]}
+const shape=it=>(DEF[it.k]||{}).s;
+function validate(){const R=P.room,its=P.items.filter(i=>i.vis!==false),cs=its.map(corners),ov=[],out=[],cl=[],bad=new Set(),badO=new Set();
+ const bb=cs.map(c=>[Math.min(...c.map(p=>p[0])),Math.max(...c.map(p=>p[0])),Math.min(...c.map(p=>p[1])),Math.max(...c.map(p=>p[1]))]);
+ for(let i=0;i<its.length;i++){const b=bb[i],sd=[];if(b[0]<-1)sd.push('west');if(b[1]>R.w+1)sd.push('east');if(b[2]<-1)sd.push('north');if(b[3]>R.l+1)sd.push('south');if(sd.length){out.push({it:its[i],sd});bad.add(its[i].id)}
+  if(shape(its[i])==='rug')continue;
+  for(let j=i+1;j<its.length;j++){if(shape(its[j])==='rug')continue;const c=bb[j];if(b[1]<c[0]||c[1]<b[0]||b[3]<c[2]||c[3]<b[2])continue;if(sat(cs[i],cs[j])){ov.push([its[i],its[j]]);bad.add(its[i].id);bad.add(its[j].id)}}}
+ for(const o of P.ops){if(o.type==='win')continue;const z=zone(o);its.forEach((it,i)=>{if(shape(it)!=='rug'&&sat(cs[i],z)){cl.push({o,it});bad.add(it.id);badO.add(o.id)}})}
+ return{ov,out,cl,bad,badO}}
+// ---------- drawing ----------
+const rr=(c,x,y,w,h,r)=>{r=Math.min(r,Math.abs(w)/2,Math.abs(h)/2);c.beginPath();c.roundRect?c.roundRect(x,y,w,h,r):c.rect(x,y,w,h)};
+function mix(h,t){const n=parseInt(h.slice(1),16),r=n>>16,g=n>>8&255,b=n&255,f=t<0?0:255,a=Math.abs(t),m=v=>Math.round(v+(f-v)*a);return`rgb(${m(r)},${m(g)},${m(b)})`}
+function drawShape(c,s,w,h,col,z,C){const x0=-w/2,y0=-h/2,lw=1.5/z,m=Math.min(w,h);c.lineWidth=lw;c.strokeStyle='rgba(70,60,80,.5)';c.lineJoin='round';
+ const F=(f)=>{c.fillStyle=f;c.fill();c.stroke()},R=(x,y,a,b,r,f)=>{rr(c,x,y,a,b,r);F(f)},E=(x,y,a,b,f)=>{c.beginPath();c.ellipse(x,y,a,b,0,0,7);F(f)};
+ switch(s){
+ case'sofa':{R(x0,y0,w,h,m*.14,col);R(x0,y0,w,h*.26,m*.1,mix(col,-.12));const n=Math.max(1,Math.round(w/(h*.8))),mg=w*.04,cw=(w-2*mg)/n;for(let i=0;i<n;i++)R(x0+mg+i*cw+lw,y0+h*.3,cw-2*lw,h*.66,m*.08,mix(col,.28));break}
+ case'bed':{R(x0,y0,w,h,m*.05,mix(col,-.12));R(x0+w*.04,y0+h*.06,w*.92,h*.9,m*.04,mix(col,.55));const n=w>1100?2:1,pw=w*.86/n;for(let i=0;i<n;i++)R(x0+w*.07+i*pw+w*.01,y0+h*.09,pw-w*.02,h*.13,m*.04,'#fffaf5');R(x0+w*.04,y0+h*.32,w*.92,h*.64,m*.04,mix(col,.1));break}
+ case'table':R(x0,y0,w,h,m*.06,col);R(x0+m*.08,y0+m*.08,w-m*.16,h-m*.16,m*.04,mix(col,.25));break;
+ case'rtable':E(0,0,w/2,h/2,col);E(0,0,w*.4,h*.4,mix(col,.25));break;
+ case'chair':R(x0+w*.08,y0+h*.22,w*.84,h*.72,m*.15,col);R(x0+w*.08,y0,w*.84,h*.2,m*.08,mix(col,-.22));break;
+ case'cab':{R(x0,y0,w,h,m*.05,col);const n=Math.max(1,Math.round(w/450));c.beginPath();for(let i=1;i<n;i++){c.moveTo(x0+w*i/n,y0+h*.12);c.lineTo(x0+w*i/n,y0+h)}c.moveTo(x0,y0+h*.12);c.lineTo(x0+w,y0+h*.12);c.stroke();c.fillStyle=mix(col,-.35);for(let i=0;i<n;i++){c.beginPath();c.arc(x0+w*(i+.5)/n,y0+h*.6,m*.05,0,7);c.fill()}break}
+ case'toilet':R(x0+w*.1,y0,w*.8,h*.28,m*.1,mix(col,-.08));E(0,y0+h*.64,w*.42,h*.34,col);E(0,y0+h*.66,w*.26,h*.2,mix(col,-.1));break;
+ case'tub':R(x0,y0,w,h,m*.2,col);R(x0+m*.1,y0+m*.1,w-m*.2,h-m*.2,m*.3,'#cfe3f3');E(x0+m*.3,0,m*.05,m*.05,mix(col,-.3));break;
+ case'shower':R(x0,y0,w,h,m*.04,'#d8e8f2');c.beginPath();c.moveTo(x0,y0);c.lineTo(x0+w,y0+h);c.stroke();E(0,0,m*.06,m*.06,'#9fbbd0');break;
+ case'plant':{const r=m/2;c.fillStyle='#8fbf8a';for(let i=0;i<7;i++){c.save();c.rotate(i*Math.PI*2/7);c.beginPath();c.ellipse(r*.55,0,r*.45,r*.2,0,0,7);F(i%2?col:mix(col,-.12));c.restore()}E(0,0,r*.2,r*.2,'#c9a27a');break}
+ case'rug':R(x0,y0,w,h,m*.05,col);c.setLineDash([m*.05,m*.04]);R(x0+m*.08,y0+m*.08,w-m*.16,h-m*.16,m*.03,mix(col,.3));c.setLineDash([]);break;
+ case'desk':R(x0,y0,w,h,m*.05,col);R(-w*.15,y0+h*.1,w*.3,h*.12,m*.02,'#4a4e5a');R(-w*.12,y0+h*.4,w*.24,h*.12,m*.02,'#f2efe9');break;
+ case'tv':R(x0,y0,w,h,h*.2,col);break;
+ case'lamp':E(0,0,w/2,h/2,col);E(0,0,w*.28,h*.28,mix(col,.5));break;
+ case'art':R(x0,y0,w,h,m*.1,col);R(x0+w*.04,y0+h*.2,w*.92,h*.6,0,mix(col,.4));break;
+ case'mirror':R(x0,y0,w,h,m*.2,col);break;
+ case'stove':R(x0,y0,w,h,m*.05,col);for(const[a,b]of[[-1,-1],[1,-1],[-1,1],[1,1]]){c.beginPath();c.arc(a*w*.22,b*h*.22,w*.13,0,7);F(mix(col,-.2))}break;
+ case'sink':R(x0,y0,w,h,m*.05,col);R(x0+w*.15,y0+h*.22,w*.7,h*.62,m*.1,'#bcd9ec');E(0,y0+h*.12,m*.04,m*.04,'#999');break;
+ case'fridge':R(x0,y0,w,h,m*.06,col);c.beginPath();c.moveTo(x0,y0+h*.35);c.lineTo(x0+w,y0+h*.35);c.stroke();R(x0+w*.8,y0+h*.12,w*.06,h*.15,2,'#9aa4ae');break;
+ case'basket':E(0,0,w/2,h/2,col);E(0,0,w*.38,h*.38,mix(col,.3));break;
+ default:R(x0,y0,w,h,m*.05,col)}}
+function drawOpening(c,type,w,t,flip,C,z){const lw=1.5/z,h=w/2;c.lineWidth=lw;c.strokeStyle=C.line;c.lineCap='round';
+ if(type==='win'){rr(c,-h,-t/2,w,t,t*.2);c.fillStyle=C.win;c.fill();c.stroke();c.strokeStyle='#7fa6c6';c.beginPath();c.moveTo(-h,0);c.lineTo(h,0);c.stroke();return}
+ c.fillStyle=C.wall;for(const sx of[-h,h-t*.3]){c.fillRect(sx,-t/2,t*.3,t)}
+ if(type==='sdoor'){c.fillStyle=C.win;rr(c,-h,-t*.45,w*.52,t*.35,2);c.fill();c.stroke();rr(c,-h+w*.48,t*.1,w*.52,t*.35,2);c.fill();c.stroke();return}
+ const leaf=(hx,sg)=>{c.beginPath();c.moveTo(hx,0);c.lineTo(hx,sg*(type==='ddoor'?w/2:w));c.lineWidth=3/z;c.stroke();c.lineWidth=lw;c.globalAlpha=.55;c.setLineDash([5/z,4/z]);c.beginPath();const r=type==='ddoor'?w/2:w;if(hx<0)c.arc(hx,0,r,0,Math.PI/2);else c.arc(hx,0,r,Math.PI/2,Math.PI);c.stroke();c.setLineDash([]);c.globalAlpha=1};
+ if(type==='ddoor'){leaf(-h,1);leaf(h,1)}else leaf(flip?h:-h,1)}
+function readColors(){const s=getComputedStyle(document.documentElement),g=n=>s.getPropertyValue(n).trim();V.C={floor:g('--floor'),grid:g('--grid'),wall:g('--wall'),line:g('--line'),warn:g('--warn'),bg:g('--cvbg'),win:g('--win'),ac:g('--ac'),ac2:g('--ac2')}}
+function render(c,cm,W,H,o){const R=P.room,t=R.t,z=cm.z,C=V.C,fl=R.floor||C.floor,g=P.grid,val=V.val;
+ c.clearRect(0,0,W,H);c.fillStyle=o.bg||C.bg;c.fillRect(0,0,W,H);c.save();c.translate(cm.x,cm.y);c.scale(z,z);
+ c.fillStyle=C.wall;c.fillRect(-t,-t,R.w+2*t,R.l+2*t);c.fillStyle=fl;c.fillRect(0,0,R.w,R.l);
+ if(o.grid&&g.size*z>=5){c.beginPath();for(let x=0;x<=R.w;x+=g.size){c.moveTo(x,0);c.lineTo(x,R.l)}for(let y=0;y<=R.l;y+=g.size){c.moveTo(0,y);c.lineTo(R.w,y)}c.lineWidth=1/z;c.strokeStyle=C.grid;c.stroke()}
+ for(const op of P.ops){const f=oframe(op);c.save();c.translate(f.cx,f.cy);c.rotate(rad(f.a));c.fillStyle=fl;c.fillRect(-op.w/2,-t/2,op.w,t);drawOpening(c,op.type,op.w,t,op.flip,C,z);c.restore();
+  if(o.warn&&op.type!=='win'){const zn=zone(op),bd=val.badO.has(op.id);c.beginPath();zn.forEach((p,i)=>i?c.lineTo(...p):c.moveTo(...p));c.closePath();if(bd){c.fillStyle=C.warn;c.globalAlpha=.18;c.fill();c.globalAlpha=1}c.lineWidth=1.5/z;c.setLineDash([6/z,5/z]);c.strokeStyle=bd?C.warn:C.line;c.globalAlpha=bd||op.id===sel?1:.3;c.stroke();c.setLineDash([]);c.globalAlpha=1}}
+ const ord=P.items.filter(i=>i.vis!==false).sort((a,b)=>(shape(a)==='rug'?0:1)-(shape(b)==='rug'?0:1));
+ for(const it of ord){c.save();c.translate(it.x,it.y);c.rotate(rad(it.rot));drawShape(c,shape(it),it.w,it.h,it.col,z,C);if(it.locked&&!o.exp){c.fillStyle='rgba(0,0,0,.35)';c.beginPath();c.arc(-it.w/2+it.h*.15+Math.min(it.w,it.h)*.1,-it.h/2+Math.min(it.w,it.h)*.12,Math.min(it.w,it.h)*.07,0,7);c.fill()}c.restore()}
+ const poly=(pts)=>{c.beginPath();pts.forEach((p,i)=>i?c.lineTo(...p):c.moveTo(...p));c.closePath()};
+ if(o.warn)for(const it of ord)if(val.bad.has(it.id)){const cs=corners(it);poly(cs);c.lineWidth=3/z;c.setLineDash([8/z,5/z]);c.strokeStyle=C.warn;c.stroke();c.setLineDash([]);c.fillStyle=C.warn;c.beginPath();c.arc(cs[0][0],cs[0][1],10/z,0,7);c.fill();c.fillStyle='#fff';c.font=`bold ${13/z}px sans-serif`;c.textAlign='center';c.textBaseline='middle';c.fillText('!',cs[0][0],cs[0][1]+.5/z)}
+ const so=!o.exp&&sel&&get(sel);if(so){c.lineWidth=2.5/z;c.strokeStyle=C.ac2;if(so.wall){const f=oframe(so);poly([loc(f,-so.w/2,-t),loc(f,so.w/2,-t),loc(f,so.w/2,t),loc(f,-so.w/2,t)])}else poly(corners(so));c.stroke()}
+ if(drag&&drag.snap){const s=drag.snap;c.lineWidth=1/z;c.strokeStyle=C.ac;c.setLineDash([4/z,4/z]);c.beginPath();c.moveTo(s.x,0);c.lineTo(s.x,R.l);c.moveTo(0,s.y);c.lineTo(R.w,s.y);c.stroke();c.setLineDash([])}
+ if(o.measure){c.fillStyle=C.line;c.font=`${12/z}px sans-serif`;c.textAlign='center';c.textBaseline='bottom';c.fillText(fmt(R.w,P.unit)+' '+P.unit,R.w/2,-t-6/z);c.save();c.translate(-t-6/z,R.l/2);c.rotate(-Math.PI/2);c.fillText(fmt(R.l,P.unit)+' '+P.unit,0,0);c.restore();
+  if(so&&!so.wall){c.textBaseline='top';c.fillText(`${fmt(so.w,P.unit)} × ${fmt(so.h,P.unit)}`,so.x,so.y+Math.max(so.w,so.h)/2+6/z)}}
+ c.restore()}
+function frame(){requestAnimationFrame(frame);if(!need||!P)return;need=false;render(cx,cam,CW,CH,{grid:P.grid.show,measure:P.grid.measure,warn:P.grid.warn});$('#zPct').textContent=Math.round(cam.z*1000)+'%'}
+function thumb(cvs,d){const c=cvs.getContext('2d');c.scale(2,2);c.translate(28,19);if(isOp(d.k)){const k=46/d.w;c.scale(k,k);c.translate(0,d.k==='win'?0:-d.w*.3);drawOpening(c,d.k,d.w,100,false,V.C,k)}else{const k=Math.min(50/d.w,32/d.h);c.scale(k,k);drawShape(c,d.s,d.w,d.h,d.col,k,V.C)}}
+// ---------- history / persistence ----------
+const snap=()=>JSON.stringify({room:P.room,items:P.items,ops:P.ops,grid:P.grid,unit:P.unit});
+function commit(){const s=snap();if(s!==H[hi]){H.length=hi+1;H.push(s);hi++;if(H.length>100){H.shift();hi--}}changed()}
+function restore(s){Object.assign(P,JSON.parse(s));if(sel&&!get(sel))sel=null;changed(true)}
+function changed(noDirty){V.val=validate();need=true;inspect();ui();if(!noDirty||1)dirty()}
+function setStatus(t){$('#status').textContent=t}
+function dirty(){setStatus('Unsaved changes');clearTimeout(saveT);saveT=setTimeout(()=>{setStatus('Saving…');save();},700)}
+function save(){if(!P)return;clearTimeout(saveT);P.mod=Date.now();P.cam={...cam};DB.projects[P.id]=P;DB.cur=P.id;if(!persist){setStatus('Not persisted (storage unavailable)');return}try{localStorage.setItem(KEY,JSON.stringify(DB));setStatus('Saved')}catch(e){setStatus('Not saved');toast('Storage is full or blocked — use Share → Export project to keep a backup.')}}
+function loadDB(){try{localStorage.setItem(KEY+'.t','1');localStorage.removeItem(KEY+'.t');const r=JSON.parse(localStorage.getItem(KEY)||'null');if(r&&r.projects){for(const id in r.projects){try{DB.projects[id]=clean(r.projects[id],true)}catch(e){}}DB.cur=r.cur}}catch(e){persist=false;setTimeout(()=>toast('Local storage is unavailable — changes will not persist after closing this tab. Export a backup from Share.'),500)}}
+function newProj(name,unit,w,l,t){const i=sysI(unit);return{v:1,id:uid(),name,unit,room:{w,l,t,floor:'',clr:900},grid:{size:i?152.4:100,show:true,snap:true,measure:true,warn:true},items:[],ops:[],cam:null,mod:Date.now()}}
+function clean(o,keepId){if(!o||typeof o!=='object')throw Error('Not a project file.');if(o.v!==1)throw Error('Unsupported project version: '+o.v);const r=o.room,n=Number.isFinite;if(!r||![r.w,r.l,r.t].every(n)||r.w<500||r.l<500||r.w>5e4||r.l>5e4||r.t<20||r.t>1000)throw Error('Room dimensions are invalid.');if(!Array.isArray(o.items)||!Array.isArray(o.ops))throw Error('Furniture data is missing.');
+ const u=U[o.unit]?o.unit:'cm',st=(s,d)=>String(s==null?d:s).slice(0,60);
+ const items=o.items.map(i=>{if(!i||![i.x,i.y,i.w,i.h,i.rot].every(n)||!DEF[i.k]||isOp(i.k))throw Error('A furniture item is invalid.');return{id:st(i.id,uid()),k:i.k,name:st(i.name,DEF[i.k].n),cat:DEF[i.k].c,x:i.x,y:i.y,w:Math.min(Math.max(i.w,50),8000),h:Math.min(Math.max(i.h,50),8000),rot:i.rot,col:/^#[0-9a-f]{6}$/i.test(i.col)?i.col:DEF[i.k].col,locked:!!i.locked,vis:i.vis!==false}});
+ const ops=o.ops.map(i=>{if(!i||!['N','S','E','W'].includes(i.wall)||![i.pos,i.w].every(n)||!DEF[i.type]||!isOp(i.type))throw Error('A door or window is invalid.');return{id:st(i.id,uid()),type:i.type,name:st(i.name,DEF[i.type].n),wall:i.wall,pos:i.pos,w:Math.min(Math.max(i.w,200),4000),flip:!!i.flip}});
+ const g=o.grid||{};return{v:1,id:keepId&&o.id?st(o.id):uid(),name:st(o.name,'Imported room'),unit:u,room:{w:r.w,l:r.l,t:r.t,floor:/^#[0-9a-f]{6}$/i.test(r.floor)?r.floor:'',clr:n(r.clr)?Math.min(Math.max(r.clr,200),3000):900},grid:{size:n(g.size)&&g.size>=10?g.size:100,show:g.show!==false,snap:g.snap!==false,measure:g.measure!==false,warn:g.warn!==false},items,ops,cam:null,mod:Date.now()}}
+function openP(p){if(P)save();P=p;sel=null;H=[snap()];hi=0;sizeCanvas();cam=p.cam&&p.cam.z?{...p.cam}:fitCam();DB.projects[p.id]=p;DB.cur=p.id;$('#pname').value=p.name;$('#ptitle').textContent=`${p.name} — ${fmt(p.room.w,p.unit)} × ${fmt(p.room.l,p.unit)} ${p.unit}`;changed();lib();save()}
+// ---------- camera ----------
+function sizeCanvas(){const r=$('#wrap').getBoundingClientRect(),d=window.devicePixelRatio||1;CW=r.width||800;CH=r.height||600;cv.width=Math.round(CW*d);cv.height=Math.round(CH*d);cx.setTransform(d,0,0,d,0,0);need=true}
+function fitCam(){const R=P.room,m=70,z=Math.max(.01,Math.min((CW-2*m)/(R.w+2*R.t),(CH-2*m)/(R.l+2*R.t),1.5));return{z,x:(CW-R.w*z)/2,y:(CH-R.l*z)/2}}
+function zoomAt(f,mx=CW/2,my=CH/2){const nz=Math.min(1.5,Math.max(.01,cam.z*f)),k=nz/cam.z;cam.x=mx-(mx-cam.x)*k;cam.y=my-(my-cam.y)*k;cam.z=nz;need=true}
+function focus(it){cam.x=CW/2-it.x*cam.z;cam.y=CH/2-it.y*cam.z;need=true}
+const wpt=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left-cam.x)/cam.z,(e.clientY-r.top-cam.y)/cam.z]};
+// ---------- model ops ----------
+function mkItem(k,x,y,rot=0){const d=DEF[k];return{id:uid(),k,name:d.n,cat:d.c,x,y,w:d.w,h:d.h,rot,col:d.col,locked:false,vis:true}}
+function mkOp(k,wall,pos){const d=DEF[k];return{id:uid(),type:k,name:d.n,wall,pos,w:d.w,flip:false}}
+function addFromLib(d){if(!P)return;if(isOp(d.k)){const o=mkOp(d.k,d.k==='win'?'N':'S',P.room.w/2);const taken=P.ops.filter(p=>p.wall===o.wall).map(p=>p.pos);while(taken.some(p=>Math.abs(p-o.pos)<o.w))o.pos+=o.w;o.pos=Math.min(o.pos,P.room.w-o.w/2);P.ops.push(o);sel=o.id}else{const R=P.room,it=mkItem(d.k,R.w/2,R.l/2);let best=null;const g=250,pts=[];for(let x=g;x<R.w;x+=g)for(let y=g;y<R.l;y+=g)pts.push([x,y]);pts.sort((a,b)=>Math.hypot(a[0]-R.w/2,a[1]-R.l/2)-Math.hypot(b[0]-R.w/2,b[1]-R.l/2));for(const p of pts){it.x=p[0];it.y=p[1];const cs=corners(it);if(cs.every(q=>q[0]>=0&&q[0]<=R.w&&q[1]>=0&&q[1]<=R.l)&&!P.items.some(o=>shape(o)!=='rug'&&shape(it)!=='rug'&&sat(cs,corners(o)))){best=p;break}}if(!best){it.x=R.w/2;it.y=R.l/2}P.items.push(it);sel=it.id}
+ commit();toast('Added '+d.n)}
+function delSel(){if(!sel)return;const o=get(sel);if(o&&o.locked){toast('Unlock it first');return}P.items=P.items.filter(i=>i.id!==sel);P.ops=P.ops.filter(i=>i.id!==sel);sel=null;commit()}
+function dupSel(){const o=sel&&get(sel);if(!o)return;const c=JSON.parse(JSON.stringify(o));c.id=uid();if(o.wall)c.pos=Math.min(o.pos+o.w,(o.wall==='N'||o.wall==='S'?P.room.w:P.room.l)-o.w/2);else{c.x+=200;c.y+=200;c.locked=false}(o.wall?P.ops:P.items).push(c);sel=c.id;commit()}
+function rotSel(){const o=sel&&get(sel);if(!o||o.locked)return;if(o.wall)o.flip=!o.flip;else o.rot=(Math.round(o.rot/90)*90+90)%360;commit()}
+function hit(x,y){const t=P.room.t;for(const o of P.ops){const f=oframe(o),c=Math.cos(rad(-f.a)),s=Math.sin(rad(-f.a)),dx=x-f.cx,dy=y-f.cy,lx=dx*c-dy*s,ly=dx*s+dy*c;if(Math.abs(lx)<=o.w/2&&Math.abs(ly)<=t/2+80)return{t:'op',o}}
+ const ord=P.items.filter(i=>i.vis!==false).sort((a,b)=>(shape(a)==='rug'?0:1)-(shape(b)==='rug'?0:1));for(let i=ord.length-1;i>=0;i--){const it=ord[i],c=Math.cos(rad(-it.rot)),s=Math.sin(rad(-it.rot)),dx=x-it.x,dy=y-it.y,lx=dx*c-dy*s,ly=dx*s+dy*c,p=Math.max(0,20-it.h/2);if(Math.abs(lx)<=it.w/2+p&&Math.abs(ly)<=it.h/2+p)return{t:'it',o:it}}return null}
+// ---------- pointer ----------
+cv.addEventListener('pointerdown',e=>{if(!P)return;cv.focus();cv.setPointerCapture(e.pointerId);const[wx,wy]=wpt(e),h=e.button===0?hit(wx,wy):null;
+ if(h){sel=h.o.id;drag=h.o.locked?null:{k:h.t,id:h.o.id,dx:wx-h.o.x,dy:wy-h.o.y,moved:false};if(h.o.locked)toast('Locked — unlock it in the inspector to move');inspect();ui()}
+ else{if(sel&&e.button===0){sel=null;inspect();ui()}drag={k:'pan',sx:e.clientX,sy:e.clientY,cx:cam.x,cy:cam.y};cv.style.cursor='grabbing'}need=true});
+cv.addEventListener('pointermove',e=>{if(!P)return;const[wx,wy]=wpt(e);
+ if(!drag){const h=hit(wx,wy);cv.style.cursor=h?(h.o.locked?'not-allowed':'move'):'grab';return}
+ if(drag.k==='pan'){cam.x=drag.cx+e.clientX-drag.sx;cam.y=drag.cy+e.clientY-drag.sy}
+ else{const R=P.room,g=P.grid,o=get(drag.id);if(!o){drag=null;return}
+  if(drag.k==='op'){const d=[['N',Math.abs(wy)],['S',Math.abs(wy-R.l)],['W',Math.abs(wx)],['E',Math.abs(wx-R.w)]].sort((a,b)=>a[1]-b[1])[0][0];o.wall=d;let p=d==='N'||d==='S'?wx:wy;if(g.snap)p=Math.round(p/g.size)*g.size;const L=d==='N'||d==='S'?R.w:R.l;o.w=Math.min(o.w,L);o.pos=Math.min(Math.max(p,o.w/2),L-o.w/2)}
+  else{let nx=wx-drag.dx,ny=wy-drag.dy;const c=Math.abs(Math.cos(rad(o.rot))),s=Math.abs(Math.sin(rad(o.rot))),hx=(o.w*c+o.h*s)/2,hy=(o.w*s+o.h*c)/2;drag.snap=null;
+   if(g.snap){const sn=(v,max)=>{const w=Math.min(60,g.size/2);if(Math.abs(v)<w)return 0;return Math.round(v/g.size)*g.size},ax=(v,h,max)=>{if(Math.abs(v+h-max)<Math.min(60,g.size/2))return max-h;return sn(v-h)+h};nx=ax(nx,hx,R.w);ny=ax(ny,hy,R.l);drag.snap={x:nx-hx,y:ny-hy}}
+   o.x=nx;o.y=ny;const ix=$('[data-f=x]'),iy=$('[data-f=y]');if(ix)ix.value=fmt(o.x,P.unit);if(iy)iy.value=fmt(o.y,P.unit)}
+  drag.moved=true;V.val=validate();vpanel()}
+ need=true});
+function endDrag(){if(!drag)return;const m=drag.moved&&drag.k!=='pan';drag=null;cv.style.cursor='grab';if(m)commit();else{need=true;inspect()}}
+cv.addEventListener('pointerup',endDrag);cv.addEventListener('pointercancel',endDrag);cv.addEventListener('contextmenu',e=>e.preventDefault());
+cv.addEventListener('wheel',e=>{e.preventDefault();const r=cv.getBoundingClientRect();zoomAt(e.deltaY<0?1.12:1/1.12,e.clientX-r.left,e.clientY-r.top)},{passive:false});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){const m=document.querySelectorAll('.ov');if(m.length){m[m.length-1].remove();return}if(drag&&drag.k!=='pan'){restore(H[hi]);drag=null;return}if(sel){sel=null;inspect();ui();need=true}return}
+ if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||!P||document.querySelector('.ov'))return;const k=e.key.toLowerCase(),M=e.ctrlKey||e.metaKey;
+ if(M&&k==='z'){e.preventDefault();e.shiftKey?redo():undo()}else if(M&&k==='y'){e.preventDefault();redo()}else if(M&&k==='d'){e.preventDefault();dupSel()}else if(M&&k==='s'){e.preventDefault();save();toast('Saved')}
+ else if(M&&k==='c'){const o=sel&&get(sel);if(o&&!o.wall)clip=JSON.stringify(o)}else if(M&&k==='v'&&clip){const c=JSON.parse(clip);c.id=uid();c.x+=200;c.y+=200;P.items.push(c);sel=c.id;commit()}
+ else if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();delSel()}else if(k==='r'&&!M)rotSel();
+ else if(e.key.startsWith('Arrow')&&sel){const o=get(sel);if(o.locked)return;e.preventDefault();const d=e.shiftKey?100:10,dx=e.key==='ArrowLeft'?-d:e.key==='ArrowRight'?d:0,dy=e.key==='ArrowUp'?-d:e.key==='ArrowDown'?d:0;if(o.wall)o.pos=Math.max(o.w/2,Math.min((o.wall==='N'||o.wall==='S'?P.room.w:P.room.l)-o.w/2,o.pos+dx+dy));else{o.x+=dx;o.y+=dy}commit()}});
+function undo(){if(hi>0){hi--;restore(H[hi])}}function redo(){if(hi<H.length-1){hi++;restore(H[hi])}}
+// ---------- UI ----------
+function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;$('#toasts').append(t);setTimeout(()=>t.remove(),3200)}
+function modal(title,body,btns){const m=document.createElement('div');m.className='ov';m.innerHTML='<div class="md" role="dialog" aria-modal="true"><h2></h2><div class="mb"></div><div class="mf"></div></div>';m.querySelector('h2').textContent=title;const mb=m.querySelector('.mb');typeof body==='string'?mb.innerHTML=body:mb.append(body);const mf=m.querySelector('.mf');btns.forEach(b=>{const x=document.createElement('button');x.textContent=b.t;x.className='btn '+(b.c||'');x.onclick=()=>{if(!b.f||b.f(m)!==false)m.remove()};mf.append(x)});document.body.append(m);const f=m.querySelector('input,.mf .pri,.mf button');f&&f.focus();return m}
+const confirmM=(t,msg,ok,fn,c='pri')=>modal(t,'<p>'+esc(msg)+'</p>',[{t:'Cancel'},{t:ok,c,f:fn}]);
+function ui(){const g=P?P.grid:{};$('#tGrid').classList.toggle('on',!!g.show);$('#tSnap').classList.toggle('on',!!g.snap);$('#tMeas').classList.toggle('on',!!g.measure);$('#tWarn').classList.toggle('on',!!g.warn);$('#bUndo').disabled=hi<=0;$('#bRedo').disabled=hi>=H.length-1;
+ const gs=$('#gSize');if(P){const o=GR[sysI(P.unit)?'i':'m'];if(!o.some(a=>Math.abs(a[0]-P.grid.size)<.01))P.grid.size=o[1][0];gs.innerHTML=o.map(a=>`<option value="${a[0]}"${Math.abs(a[0]-P.grid.size)<.01?' selected':''}>${a[1]}</option>`).join('')}
+ $('#empty').hidden=!P||P.items.length>0;const c=$('#ctx'),o=sel&&P&&get(sel);c.hidden=!o;if(o)c.innerHTML=`<button class="btn" data-a="rot" title="Rotate 90° (R)" aria-label="Rotate">${ic('rot')}</button><button class="btn" data-a="dup" title="Duplicate (Ctrl+D)" aria-label="Duplicate">${ic('copy')}</button><button class="btn${o.locked?' on':''}" data-a="lock" title="Lock / unlock" aria-label="Lock">${ic('lock')}</button><button class="btn dng" data-a="del" title="Delete" aria-label="Delete">${ic('trash')}</button>`;
+ $('#ptitle').textContent=P?`${P.name} — ${fmt(P.room.w,P.unit)} × ${fmt(P.room.l,P.unit)} ${P.unit}`:''}
+function area(){const R=P.room,a=R.w*R.l;return sysI(P.unit)?(a/92903.04).toFixed(2)+' ft²':(a/1e6).toFixed(2)+' m²'}
+function vpanel(){const v=V.val,n=P.items.length,tot=v.ov.length+v.out.length+v.cl.length;let h=`<div class="stat"><span><b>${n}</b> objects</span><span><b>${v.ov.length}</b> overlaps</span><span><b>${v.out.length}</b> outside</span><span><b>${v.cl.length}</b> clearance</span></div>`;
+ const wb=(t,id)=>`<button class="w" data-sel="${id}">⚠ ${t}</button>`;
+ if(!tot)h+='<p class="ok">Looking good — no detected issues.</p>';else{if(v.ov.length)h+=`<p>${v.ov.length} furniture overlap${v.ov.length>1?'s':''} to review.</p>`;if(v.out.length)h+=`<p>${v.out.length} item${v.out.length>1?'s extend':' extends'} outside the room.</p>`;if(v.cl.length)h+=`<p>${v.cl.length} doorway clearance warning${v.cl.length>1?'s':''}.</p>`}
+ v.ov.forEach(([a,b])=>h+=wb(esc(a.name)+' overlaps '+esc(b.name)+'.',a.id));v.out.forEach(o=>h+=wb(esc(o.it.name)+' extends beyond the '+o.sd.join(' and ')+' wall.',o.it.id));v.cl.forEach(c=>h+=wb(esc(c.it.name)+' obstructs the entrance clearance.',c.it.id));$('#vbody').innerHTML=h;
+ const w=$('#vbody').querySelector('p');if(!P.grid.warn&&0)w}
+function lib(){const tabs=$('#tabs');tabs.innerHTML='';Object.keys(CL).forEach(k=>{const b=document.createElement('button');b.className='tab'+(S.cat===k?' on':'');b.textContent=CL[k];b.onclick=()=>{S.cat=k;lib()};tabs.append(b)});
+ const el=$('#libList');el.innerHTML='';const q=S.q.toLowerCase(),u=P?P.unit:'cm';const L=CAT.filter(d=>(S.cat==='All'||d.c===S.cat)&&d.n.toLowerCase().includes(q));if(!L.length)el.innerHTML='<p style="color:var(--mu);text-align:center;padding:20px">Nothing found — try another word.</p>';
+ L.forEach(d=>{const b=document.createElement('button');b.className='card';b.title='Add '+d.n+' to the room';const c=document.createElement('canvas');c.width=112;c.height=76;c.style.cssText='width:56px;height:38px';thumb(c,d);const s=document.createElement('span');s.innerHTML='<b></b><small></small>';s.firstChild.textContent=d.n;s.lastChild.textContent=isOp(d.k)?'width '+fmt(d.w,u)+' '+u:fmt(d.w,u)+' × '+fmt(d.h,u)+' '+u;b.append(c,s);b.onclick=()=>addFromLib(d);el.append(b)})}
+function inspect(){if(!P)return;const el=$('#insp .body'),u=P.unit,o=sel&&get(sel),R=P.room;
+ const L=(l,f,v)=>`<label class="f"><span>${l}</span><input data-f="${f}" data-t="len" value="${fmt(v,u)}" inputmode="decimal"><i>${u}</i></label>`;
+ const T=(l,f,v)=>`<label class="f"><span>${l}</span><input data-f="${f}" value="${esc(v)}" maxlength="60"></label>`;
+ const A=`<div class="row"><button class="btn" data-a="rot">${ic('rot','Rotate')}</button><button class="btn" data-a="dup">${ic('copy','Duplicate')}</button><button class="btn dng" data-a="del">${ic('trash','Delete')}</button></div>`;
+ if(!o){el.innerHTML=`<h3>Room</h3>${T('Name','pname',P.name)}<p style="margin:6px 0"><b>${fmt(R.w,u)} ${u} × ${fmt(R.l,u)} ${u}</b><br>Floor area: <b>${area()}</b></p>${L('Width','rw',R.w)}${L('Length','rl',R.l)}${L('Wall thickness','rt',R.t)}
+<label class="f"><span>Units</span><select data-f="unit">${Object.keys(U).map(k=>`<option${k===u?' selected':''}>${k}</option>`).join('')}</select></label>
+${L('Door clearance','clr',R.clr)}<label class="f"><span>Floor colour</span><input type="color" data-f="floor" value="${R.floor||'#fbf8f2'}"></label><div class="row"><button class="btn" data-a="floor0">Theme floor</button></div>
+<p style="color:var(--mu);font-size:12px">Select an item to edit it. Clearance zone: the area in front of each real door (min. its swing) must stay free — a planning aid only, not a code check.</p>`}
+ else if(o.wall){const Lw=o.wall==='N'||o.wall==='S'?R.w:R.l;el.innerHTML=`<h3>${esc(DEF[o.type].n)}</h3>${T('Name','name',o.name)}<label class="f"><span>Wall</span><select data-f="wall">${[['N','North'],['E','East'],['S','South'],['W','West']].map(a=>`<option value="${a[0]}"${a[0]===o.wall?' selected':''}>${a[1]}</option>`).join('')}</select></label>${L('Position','pos',o.pos)}${L('Width','w',o.w)}${o.type==='door'?`<label class="f"><span>Hinge flip</span><input type="checkbox" data-f="flip"${o.flip?' checked':''}></label>`:''}<p style="color:var(--mu);font-size:12px">Position is the centre along the wall (0–${fmt(Lw,u)} ${u}). Drag it along any wall on the canvas.</p>${A}`}
+ else el.innerHTML=`<h3>${esc(o.cat)}</h3>${T('Name','name',o.name)}${L('X (centre)','x',o.x)}${L('Y (centre)','y',o.y)}${L('Width','w',o.w)}${L('Depth','h',o.h)}<label class="f"><span>Rotation</span><input data-f="rot" data-t="deg" value="${+o.rot.toFixed(1)}"><i>°</i></label><label class="f"><span>Colour</span><input type="color" data-f="col" value="${o.col}"></label><label class="f"><span>Locked</span><input type="checkbox" data-f="locked"${o.locked?' checked':''}></label><label class="f"><span>Visible</span><input type="checkbox" data-f="vis"${o.vis!==false?' checked':''}></label>${A}`;
+ vpanel()}
+$('#insp').addEventListener('change',e=>{const t=e.target,f=t.dataset.f;if(!f||!P)return;const o=sel&&get(sel),u=P.unit,R=P.room;let v=t.type==='checkbox'?t.checked:t.value;
+ if(t.dataset.t==='len'||t.dataset.t==='deg'){const n=parseFloat(String(v).replace(',','.'));if(!Number.isFinite(n)){toast('Please enter a valid number');inspect();return}v=t.dataset.t==='len'?n*U[u][0]:n}
+ const bad=m=>{toast(m);inspect()};
+ if(!o){if(f==='pname'){P.name=String(v).trim().slice(0,60)||P.name;$('#pname').value=P.name}
+  else if(f==='unit'){P.unit=v;ui()}else if(f==='floor')R.floor=v;else if(f==='clr'){if(v<200||v>3000)return bad('Clearance must be 20 cm – 3 m');R.clr=v}
+  else{const nw=f==='rw'?v:R.w,nl=f==='rl'?v:R.l,nt=f==='rt'?v:R.t;if(nw<500||nl<500||nw>5e4||nl>5e4)return bad('Room sides must be between 0.5 m and 50 m');if(nt<20||nt>1000)return bad('Wall thickness must be 2 cm – 1 m');
+   const apply=()=>{R.w=nw;R.l=nl;R.t=nt;for(const p of P.ops){const L=p.wall==='N'||p.wall==='S'?nw:nl;p.w=Math.min(p.w,L);p.pos=Math.min(Math.max(p.pos,p.w/2),L-p.w/2)}cam=fitCam();commit()};
+   const outc=P.items.filter(i=>corners(i).some(q=>q[0]<0||q[0]>nw||q[1]<0||q[1]>nl)).length;if(outc&&!P.items.every(i=>corners(i).every(q=>q[0]>=0&&q[0]<=R.w&&q[1]>=0&&q[1]<=R.l)&&0)&&outc){confirmM('Resize room?',`${outc} item${outc>1?'s':''} will sit outside the new room. Nothing is deleted — you can move them afterwards.`,'Resize',()=>{apply()});inspect();return}apply();return}}
+ else if(o.wall){if(f==='w'){if(v<200||v>4000)return bad('Width must be 20 cm – 4 m');o.w=v}else if(f==='pos')o.pos=v;else o[f]=v;const L=o.wall==='N'||o.wall==='S'?R.w:R.l;o.w=Math.min(o.w,L);o.pos=Math.min(Math.max(o.pos,o.w/2),L-o.w/2)}
+ else{if(f==='w'||f==='h'){if(v<50||v>8000)return bad('Size must be 5 cm – 8 m')}if(f==='rot')v=((v%360)+360)%360;if(f==='name'){v=String(v).trim().slice(0,60);if(!v)return bad('Name cannot be empty')}o[f]=v}
+ commit()});
+document.addEventListener('click',e=>{const a=e.target.closest('[data-a]'),s=e.target.closest('[data-sel]');if(s&&P){const o=get(s.dataset.sel);if(o){sel=o.id;focus(o);inspect();ui()}return}if(!a||!P)return;const k=a.dataset.a;if(k==='rot')rotSel();else if(k==='dup')dupSel();else if(k==='del')delSel();else if(k==='lock'){const o=get(sel);if(o){o.locked=!o.locked;commit()}}else if(k==='floor0'){P.room.floor='';commit()}});
+$('#q').oninput=e=>{S.q=e.target.value;lib()};
+const tg=(id,k)=>$(id).onclick=()=>{P.grid[k]=!P.grid[k];need=true;ui();dirty()};tg('#tGrid','show');tg('#tSnap','snap');tg('#tMeas','measure');tg('#tWarn','warn');
+$('#gSize').onchange=e=>{P.grid.size=+e.target.value;need=true;dirty()};
+$('#zIn').onclick=()=>zoomAt(1.25);$('#zOut').onclick=()=>zoomAt(.8);$('#zFit').onclick=()=>{cam=fitCam();need=true};
+$('#bUndo').onclick=undo;$('#bRedo').onclick=redo;$('#bSave').onclick=()=>{save();toast(persist?'Saved on this device':'Saving is unavailable in this browser')};
+$('#mLib').onclick=()=>{$('#insp').classList.remove('show');$('#lib').classList.toggle('show')};$('#mInsp').onclick=()=>{$('#lib').classList.remove('show');$('#insp').classList.toggle('show')};
+$('#pname').onchange=e=>{P.name=e.target.value.trim().slice(0,60)||P.name;e.target.value=P.name;ui();dirty()};
+function theme(t){document.documentElement.dataset.theme=t;try{localStorage.setItem(KEY+'.theme',t)}catch(e){}$('#bTheme').innerHTML=ic(t==='dark'?'sun':'moon');readColors();need=true;if(P)lib()}
+$('#bTheme').onclick=()=>theme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+// ---------- dialogs ----------
+function roomForm(){const d=document.createElement('div');d.innerHTML=`<label class="f"><span>Room name</span><input id="nn" value="Living Room" maxlength="60"></label><label class="f"><span>Units</span><select id="nu">${Object.keys(U).map(k=>`<option${k==='m'?' selected':''}>${k}</option>`).join('')}</select></label><label class="f"><span>Width</span><input id="nw" value="5"></label><label class="f"><span>Length</span><input id="nl" value="4"></label><label class="f"><span>Wall thick.</span><input id="nt" value="0.15"></label><p id="ne" style="color:var(--warn);min-height:1.2em;margin:4px 0"></p>`;let pu='m';d.querySelector('#nu').onchange=e=>{const a=U[pu][0],b=U[e.target.value][0];['nw','nl','nt'].forEach(i=>{const x=d.querySelector('#'+i);x.value=+(parseFloat(x.value)*a/b).toFixed(3)});pu=e.target.value};return d}
+function newRoom(){const d=roomForm();modal('Create a new room',d,[{t:'Cancel'},{t:'Create room',c:'pri',f:()=>{const u=d.querySelector('#nu').value,k=U[u][0],w=parseFloat(d.querySelector('#nw').value)*k,l=parseFloat(d.querySelector('#nl').value)*k,t=parseFloat(d.querySelector('#nt').value)*k,er=m=>{d.querySelector('#ne').textContent=m;return false};
+ if(![w,l,t].every(Number.isFinite))return er('Please enter numbers for every size.');if(w<500||l<500||w>5e4||l>5e4)return er('Width and length must be between 0.5 m and 50 m.');if(t<20||t>1000)return er('Wall thickness must be between 2 cm and 1 m.');openP(newProj(d.querySelector('#nn').value.trim().slice(0,60)||'My room',u,w,l,t))}}])}
+function sample(){const p=newProj('Cosy living room','m',5000,4000,150),I=(k,x,y,r)=>p.items.push(mkItem(k,x,y,r));I('rug',1600,1550);I('sofa3',1600,520);I('coff',1600,1550);I('arm',3600,1500,90);I('plant',4650,350);I('desk',4650,2800,90);I('ochair',4050,2800,90);I('shelf',2800,3830);I('lamp',250,500);p.ops.push(mkOp('door','S',1200),mkOp('win','N',3700));openP(p);toast('Sample room loaded — try dragging things around!')}
+function help(){modal('Controls & rules',`<p>Click library items to add them. Drag to move, wheel to zoom, drag empty space (or right/middle mouse) to pan.</p><p><kbd>Del</kbd> delete · <kbd>Ctrl/⌘+Z</kbd> undo · <kbd>Ctrl/⌘+Shift+Z</kbd> redo · <kbd>Ctrl/⌘+D</kbd> duplicate · <kbd>Ctrl/⌘+C / V</kbd> copy / paste · <kbd>R</kbd> rotate 90° · <kbd>Esc</kbd> deselect / cancel drag · <kbd>Arrows</kbd> nudge 1 cm (<kbd>Shift</kbd> 10 cm)</p><p>Overlaps use true rotated-rectangle (SAT) tests; items that only touch are fine. Rugs are decor and never count as overlaps. Each real door keeps a clearance zone in front of it (at least its swing, default 90 cm, adjustable in room settings). This is a planning aid, not a building-code or accessibility check.</p><p>Projects are saved only in this browser — export a backup from Share.</p>`,[{t:'Got it',c:'pri'}])}
+$('#bHelp').onclick=help;
+function welcome(){modal('RoomSketch Lite',`<p style="font-size:18px;margin:0 0 6px"><b>Make room for your ideas.</b></p><p style="color:var(--mu)">A cosy little planner for designing rooms to scale. Everything stays on this device.</p>`,[{t:'Learn the controls',f:()=>{help();return true}},{t:'Open a sample room',f:()=>{sample()}},{t:'Create your first room',c:'pri',f:()=>{setTimeout(newRoom,0)}}])}
+function dl(name,blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+const slug=()=>P.name.replace(/[^\w]+/g,'-').toLowerCase()||'room';
+function exportPNG(grid){const R=P.room,m=600,z=Math.min(.6,3000/(R.w+2*R.t+2*m)),W=Math.ceil((R.w+2*R.t+2*m)*z),Hh=Math.ceil((R.l+2*R.t+2*m)*z),c=document.createElement('canvas');c.width=W;c.height=Hh;const x=c.getContext('2d'),sv=sel;sel=null;render(x,{z,x:(m+R.t)*z,y:(m+R.t)*z},W,Hh,{grid,measure:true,warn:false,exp:true,bg:getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()});sel=sv;c.toBlob(b=>{dl(slug()+'.png',b);toast('PNG exported')})}
+function share(){const d=document.createElement('div');d.innerHTML=`<div class="row"><button class="btn" id="xj">${ic('dl','Export project (.json)')}</button><button class="btn" id="xi">${ic('fold','Import project…')}</button></div><div class="row"><button class="btn" id="xp">${ic('dl','Export PNG')}</button><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="xg" style="min-height:18px"> include grid</label></div><div class="row"><button class="btn" id="xr">Print plan</button></div><input type="file" id="xf" accept=".json,application/json" hidden>`;
+ const m=modal('Share & backup',d,[{t:'Close',c:'pri'}]);d.querySelector('#xj').onclick=()=>{save();dl(slug()+'.roomsketch.json',new Blob([JSON.stringify(P,null,1)],{type:'application/json'}));toast('Project exported')};
+ d.querySelector('#xp').onclick=()=>exportPNG(d.querySelector('#xg').checked);d.querySelector('#xr').onclick=()=>{m.remove();setTimeout(()=>window.print(),100)};
+ d.querySelector('#xi').onclick=()=>d.querySelector('#xf').click();d.querySelector('#xf').onchange=e=>{const f=e.target.files[0];if(!f)return;if(f.size>8e6){toast('That file is too large to be a project.');return}const r=new FileReader();r.onload=()=>{try{const p=clean(JSON.parse(r.result));m.remove();openP(p);toast('Imported “'+p.name+'”')}catch(er){toast('Import failed: '+(er instanceof SyntaxError?'this is not valid JSON.':er.message))}};r.onerror=()=>toast('Could not read that file.');r.readAsText(f)}}
+$('#bShare').innerHTML=ic('dl','Share');$('#bShare').onclick=()=>P?share():toast('Create a room first');
+function projects(){const d=document.createElement('div'),draw=()=>{d.innerHTML='';Object.values(DB.projects).sort((a,b)=>b.mod-a.mod).forEach(p=>{const r=document.createElement('div');r.className='pl';r.innerHTML='<div><b></b><br><small></small></div>';r.querySelector('b').textContent=p.name+(P&&p.id===P.id?' (open)':'');r.querySelector('small').textContent=`${fmt(p.room.w,p.unit)} × ${fmt(p.room.l,p.unit)} ${p.unit} · ${p.items.length} items · ${new Date(p.mod).toLocaleString()}`;
+  const B=(t,f,c='')=>{const b=document.createElement('button');b.className='btn '+c;b.textContent=t;b.onclick=f;r.append(b)};
+  B('Open',()=>{m.remove();openP(p)});B('Copy',()=>{const c=JSON.parse(JSON.stringify(p));c.id=uid();c.name=p.name+' copy';c.mod=Date.now();DB.projects[c.id]=c;save();draw();toast('Duplicated')});
+  B('Rename',()=>{const i=document.createElement('input');i.value=p.name;modal('Rename project',i,[{t:'Cancel'},{t:'Rename',c:'pri',f:()=>{p.name=i.value.trim().slice(0,60)||p.name;if(P&&p.id===P.id)$('#pname').value=p.name;save();draw()}}])});
+  B('Delete',()=>confirmM('Delete project?',`“${p.name}” will be removed from this device. Export it first if you want a backup.`,'Delete',()=>{delete DB.projects[p.id];if(P&&p.id===P.id){const n=Object.values(DB.projects)[0];P=null;if(n)openP(n);else{save();location.reload()}}else save();draw()},'dng'),'dng');d.append(r)})};draw();
+ const m=modal('Your projects',d,[{t:'Close'},{t:'New room',c:'pri',f:()=>{setTimeout(newRoom,0)}}])}
+$('#bProj').innerHTML=ic('fold','Projects');$('#bProj').onclick=projects;$('#bUndo').innerHTML=ic('undo');$('#bRedo').innerHTML=ic('redo');$('#bSave').innerHTML=ic('save','Save');$('#zFit').innerHTML=ic('fit');
+new ResizeObserver(()=>{sizeCanvas()}).observe($('#wrap'));addEventListener('beforeunload',()=>{if(P)save()});
+// ---------- boot ----------
+(function(){let t='light';try{t=localStorage.getItem(KEY+'.theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light')}catch(e){}theme(t);loadDB();lib();sizeCanvas();requestAnimationFrame(frame);
+ const ids=Object.keys(DB.projects);if(ids.length)openP(DB.projects[DB.cur]||DB.projects[ids[0]]);else welcome()})();
+</script></body></html>
